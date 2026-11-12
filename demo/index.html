@@ -2,47 +2,327 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>vue-h5-editor demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>vue-h5-editor · 移动端 H5 富文本编辑器</title>
+    <meta
+      name="description"
+      content="基于 Tiptap 2 的移动端 H5 富文本编辑器，格式面板跟随键盘，支持 Vue 2 / Vue 3 / uni-app（H5）。"
+    />
     <style>
+      :root {
+        --brand: #1e6fff;
+        --brand-soft: #eef3ff;
+        --ink: #1f2329;
+        --muted: #5c6470;
+        --line: #e5e6eb;
+        --soft: #f6f8fb;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
       body {
         margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #eef1f6;
-        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      }
-      .card {
-        width: 340px;
-        padding: 28px 24px;
-        border-radius: 14px;
+        color: var(--ink);
         background: #fff;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
       }
-      h1 { margin: 0 0 6px; font-size: 20px; color: #1f2329; }
-      p { margin: 0 0 20px; color: #5c6470; font-size: 13px; line-height: 20px; }
-      a {
-        display: block;
-        margin-bottom: 10px;
-        padding: 12px 14px;
-        border: 1px solid #e5e6eb;
-        border-radius: 10px;
-        color: #1e6fff;
+      a { color: inherit; text-decoration: none; }
+      .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+      .logo { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; }
+      .logo-mark {
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--brand);
+        color: #fff;
         font-size: 14px;
-        text-decoration: none;
+        font-weight: 700;
       }
-      a:hover { background: #f3f6fb; }
-      code { color: #8a9099; font-size: 12px; }
+      .nav-links { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: 14px; }
+      .nav-links a:hover { color: var(--brand); }
+
+      .hero { padding: 72px 0 64px; }
+      .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 56px; align-items: center; }
+      .tag {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        font-size: 12px;
+        font-weight: 600;
+      }
+      h1 { margin: 0 0 16px; font-size: 42px; line-height: 1.25; letter-spacing: -0.5px; }
+      .hero p { margin: 0 0 24px; max-width: 480px; color: var(--muted); font-size: 16px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 20px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .btn:hover { border-color: #c9d4e6; }
+      .btn-primary { border-color: var(--brand); background: var(--brand); color: #fff; }
+      .btn-primary:hover { border-color: #1a62e6; background: #1a62e6; }
+
+      .phone {
+        position: relative;
+        width: 340px;
+        height: 660px;
+        padding: 10px;
+        border-radius: 38px;
+        background: #14181d;
+        box-shadow: 0 24px 60px rgba(20, 24, 29, 0.24);
+      }
+      .phone::before {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        z-index: 2;
+        width: 96px;
+        height: 22px;
+        transform: translateX(-50%);
+        border-radius: 0 0 12px 12px;
+        background: #14181d;
+      }
+      .phone-screen {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 30px;
+        background: #fff;
+      }
+      .phone-screen iframe { display: block; width: 100%; height: 100%; border: 0; }
+      .phone-hint { margin: 14px 0 0; color: #8a9099; font-size: 12px; text-align: center; }
+
+      .section { padding: 64px 0; border-top: 1px solid var(--line); }
+      .section-soft { background: var(--soft); }
+      .section h2 { margin: 0 0 8px; font-size: 26px; }
+      .section-sub { margin: 0 0 32px; color: var(--muted); font-size: 14px; }
+
+      .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      .card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+      .card h3 { margin: 0 0 8px; font-size: 15px; }
+      .card p { margin: 0; color: var(--muted); font-size: 13px; }
+      .card-ico {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 14px;
+        border-radius: 9px;
+        background: var(--brand-soft);
+        color: var(--brand);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      table.matrix { width: 100%; border-collapse: collapse; font-size: 14px; background: #fff; }
+      table.matrix th,
+      table.matrix td { padding: 12px 14px; border: 1px solid var(--line); text-align: left; }
+      table.matrix th { background: var(--soft); font-weight: 600; }
+      table.matrix code { color: var(--brand); }
+
+      .code-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .code-block {
+        overflow: auto;
+        margin: 0;
+        padding: 18px;
+        border-radius: 12px;
+        background: #1f2329;
+        color: #d7dae0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12.5px;
+        line-height: 1.7;
+      }
+      .code-block .cmt { color: #7d8794; }
+
+      .footer { padding: 28px 0 40px; border-top: 1px solid var(--line); color: #8a9099; font-size: 13px; }
+      .footer-inner { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+      .footer a { color: var(--muted); }
+      .footer a:hover { color: var(--brand); }
+
+      @media (max-width: 900px) {
+        .hero { padding: 48px 0; }
+        .hero-grid { grid-template-columns: 1fr; gap: 36px; }
+        .phone { margin: 0 auto; }
+        h1 { font-size: 32px; }
+        .features { grid-template-columns: 1fr 1fr; }
+        .code-grid { grid-template-columns: 1fr; }
+        .nav-links { gap: 14px; }
+        .nav-links .hide-sm { display: none; }
+      }
+      @media (max-width: 560px) {
+        .features { grid-template-columns: 1fr; }
+        h1 { font-size: 28px; }
+        .phone,
+        .phone-hint { display: none; }
+      }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>vue-h5-editor</h1>
-      <p>移动端富文本编辑器 demo，选择要预览的运行时。</p>
-      <a href="./vue2.html">Vue 2 示例 <code>dist/vue2</code></a>
-      <a href="./vue3.html">Vue 3 示例 <code>dist/vue3</code></a>
-    </div>
+    <header class="nav">
+      <div class="wrap nav-inner">
+        <a class="logo" href="./">
+          <span class="logo-mark">E</span>
+          vue-h5-editor
+        </a>
+        <nav class="nav-links">
+          <a href="#features">特性</a>
+          <a href="#usage" class="hide-sm">接入</a>
+          <a href="./vue3.html" target="_blank" rel="noopener">在线示例</a>
+          <a href="https://github.com/MrSmy/vue-h5-editor" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://www.npmjs.com/package/vue-h5-editor" target="_blank" rel="noopener">npm</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="tag">Tiptap 2 · Vue 2 / Vue 3 · uni-app</span>
+          <h1>为移动端而生的<br />H5 富文本编辑器</h1>
+          <p>
+            没有常驻工具栏，格式操作收进键盘上方的浮动面板，正文区留出更多空间。
+            纯 HTML 进出，Vue 2、Vue 3 和 uni-app（H5）都能直接用。
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="./vue3.html" target="_blank" rel="noopener">立即体验</a>
+            <a class="btn" href="./vue2.html" target="_blank" rel="noopener">Vue 2 示例</a>
+            <a class="btn" href="https://github.com/MrSmy/vue-h5-editor" target="_blank" rel="noopener">查看源码</a>
+          </div>
+        </div>
+        <div>
+          <div class="phone">
+            <div class="phone-screen">
+              <iframe src="./vue3.html" title="vue-h5-editor 移动端示例" loading="lazy"></iframe>
+            </div>
+          </div>
+          <p class="phone-hint">右侧是真实组件，可直接输入体验</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="features">
+      <div class="wrap">
+        <h2>特性</h2>
+        <p class="section-sub">针对小屏和软键盘做了取舍，不追求桌面编辑器的全量能力。</p>
+        <div class="features">
+          <div class="card">
+            <div class="card-ico">⌨</div>
+            <h3>键盘友好</h3>
+            <p>面板跟随 visualViewport 浮动，iOS / Android 键盘弹起后不被顶飞、不被遮挡。</p>
+          </div>
+          <div class="card">
+            <div class="card-ico">A</div>
+            <h3>格式齐全</h3>
+            <p>标题 H1–H5、字号、文字颜色、加粗 / 斜体 / 下划线 / 删除线、对齐、行高、缩进。</p>
+          </div>
+          <div class="card">
+            <div class="card-ico">▤</div>
+            <h3>图文混排</h3>
+            <p>图片、表格、分割线、待办与有序 / 无序列表，粘贴内容按 schema 过滤。</p>
+          </div>
+          <div class="card">
+            <div class="card-ico">V</div>
+            <h3>Vue 2 / 3 双产物</h3>
+            <p>同一份源码产出两套入口，v-model 分别走 value 与 modelValue，互不干扰。</p>
+          </div>
+          <div class="card">
+            <div class="card-ico">U</div>
+            <h3>uni-app 可用</h3>
+            <p>H5 端直接使用，取图可接 uni.chooseImage，上传可接 uni.uploadFile。</p>
+          </div>
+          <div class="card">
+            <div class="card-ico">H</div>
+            <h3>纯 HTML 进出</h3>
+            <p>v-model 就是 HTML 字符串，没有自定义 JSON 协议，前后端存储都简单。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <h2>兼容矩阵</h2>
+        <p class="section-sub">默认入口是 Vue 2，Vue 3 必须显式引入 /vue3。</p>
+        <table class="matrix">
+          <thead>
+            <tr><th>运行时</th><th>引入方式</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Vue 2.6+</td><td><code>vue-h5-editor</code> 或 <code>/vue2</code></td><td>v-model 走 value / input</td></tr>
+            <tr><td>Vue 3.2+</td><td><code>vue-h5-editor/vue3</code></td><td>v-model 走 modelValue / update:modelValue</td></tr>
+            <tr><td>uni-app（H5）</td><td>按 uni-app 的 Vue 版本选择</td><td>App / 小程序端不支持，需降级 textarea</td></tr>
+            <tr><td>原生浏览器</td><td>dist 下的 UMD 包</td><td>页面里需先加载对应 Vue 全局构建</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section section-soft" id="usage">
+      <div class="wrap">
+        <h2>接入</h2>
+        <p class="section-sub">安装后两行代码就能跑，样式随 JS 注入，不需要额外引 CSS。</p>
+        <div class="code-grid">
+          <pre class="code-block"><span class="cmt"># 安装</span>
+npm i vue-h5-editor
+
+<span class="cmt"># 按需引入</span>
+import MobileEditor from "vue-h5-editor";       <span class="cmt">// Vue 2</span>
+import MobileEditor from "vue-h5-editor/vue3";  <span class="cmt">// Vue 3</span></pre>
+          <pre class="code-block"><span class="cmt">&lt;!-- Vue 3 --&gt;</span>
+&lt;script setup&gt;
+import { ref } from "vue";
+import MobileEditor from "vue-h5-editor/vue3";
+
+const html = ref("&lt;p&gt;你好&lt;/p&gt;");
+&lt;/script&gt;
+
+&lt;template&gt;
+  &lt;div style="height: 100vh"&gt;
+    &lt;mobile-editor v-model="html" placeholder="说点什么…" /&gt;
+  &lt;/div&gt;
+&lt;/template&gt;</pre>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="wrap footer-inner">
+        <span>MIT License · © 2026 冯扬</span>
+        <span>
+          <a href="./vue2.html" target="_blank" rel="noopener">Vue 2 示例</a>
+          ·
+          <a href="./vue3.html" target="_blank" rel="noopener">Vue 3 示例</a>
+          ·
+          <a href="https://github.com/MrSmy/vue-h5-editor" target="_blank" rel="noopener">GitHub</a>
+          ·
+          <a href="https://www.npmjs.com/package/vue-h5-editor" target="_blank" rel="noopener">npm</a>
+        </span>
+      </div>
+    </footer>
   </body>
 </html>

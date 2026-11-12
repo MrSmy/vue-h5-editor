@@ -35,10 +35,28 @@ body {
   inset: 0;
   z-index: 10002;
   display: none;
-  margin: 0;
-  padding: 24px 16px 96px;
-  overflow: auto;
+  flex-direction: column;
   background: #1f2329;
+}
+.output.is-visible { display: flex; }
+.output-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  padding: 6px 14px;
+  border: 1px solid #3a424d;
+  border-radius: 6px;
+  background: #2a3138;
+  color: #d7dae0;
+  font-size: 12px;
+  line-height: 18px;
+}
+.output-body {
+  flex: 1;
+  margin: 0;
+  padding: 52px 16px 32px;
+  overflow: auto;
   color: #d7dae0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
@@ -46,4 +64,3 @@ body {
   white-space: pre-wrap;
   word-break: break-all;
 }
-.output.is-visible { display: block; }
