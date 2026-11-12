@@ -7,6 +7,13 @@
 
 > English: A mobile-first rich text editor for H5 built on Tiptap 2. Ships Vue 2 and Vue 3 builds, works in uni-app H5 projects. Format controls live in a dock above the keyboard instead of a toolbar row.
 
+## 在线示例
+
+- Vue 2：https://mrsmy.github.io/vue-h5-editor/vue2.html
+- Vue 3：https://mrsmy.github.io/vue-h5-editor/vue3.html
+
+移动端建议用手机浏览器打开，能直接看到键盘弹起时的面板行为。
+
 ## 特性
 
 - **键盘友好**：底部面板随 `visualViewport` 浮动，iOS / Android 键盘弹起后不会被顶飞或遮挡
@@ -185,9 +192,12 @@ export default {
 
 ```bash
 npm install
-npm run build   # 产出 dist/vue2、dist/vue3
-npm run demo    # 构建后起 http://localhost:5178/demo/
+npm run build        # 产出 dist/vue2、dist/vue3
+npm run build:demo   # 再把 Vue 运行时和产物复制进 demo/，供 Pages 部署
+npm run demo         # 构建并起 http://localhost:5178/demo/
 ```
+
+推送 `master` 后，[.github/workflows/deploy-demo.yml](./.github/workflows/deploy-demo.yml) 会自动构建并发布 `demo/` 到 GitHub Pages。
 
 `npm run demo` 用 Python 起静态服务；没有 Python 时用任意静态服务器指向仓库根目录，打开 `demo/index.html`。
 

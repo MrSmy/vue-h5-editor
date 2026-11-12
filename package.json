@@ -47,7 +47,8 @@
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "dev": "rollup -c -w",
-    "demo": "npm run build && python -m http.server 5178",
+    "build:demo": "npm run build && node scripts/build-demo.js",
+    "demo": "npm run build:demo && python -m http.server 5178",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

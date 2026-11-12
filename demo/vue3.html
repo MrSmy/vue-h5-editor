@@ -20,8 +20,8 @@
       <pre :class="['output', showHtml ? 'is-visible' : '']">{{ html }}</pre>
     </div>
 
-    <script src="../node_modules/vue3/dist/vue.global.js"></script>
-    <script src="../dist/vue3/index.umd.js"></script>
+    <script src="./runtime/vue3.js"></script>
+    <script src="./lib/vue3.js"></script>
     <script>
       const { createApp } = Vue;
       createApp({

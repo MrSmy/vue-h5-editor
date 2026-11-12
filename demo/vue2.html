@@ -20,8 +20,8 @@
       <pre :class="['output', showHtml ? 'is-visible' : '']">{{ html }}</pre>
     </div>
 
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../dist/vue2/index.umd.js"></script>
+    <script src="./runtime/vue2.js"></script>
+    <script src="./lib/vue2.js"></script>
     <script>
       Vue.use(window.VueMobileEditor.default);
       new Vue({
