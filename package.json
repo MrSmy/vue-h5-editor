@@ -1,5 +1,5 @@
 {
-  "name": "vue-mobile-editor",
+  "name": "vue-h5-editor",
   "version": "0.1.0",
   "description": "Mobile-first rich text editor for H5, built on Tiptap 2. Supports Vue 2, Vue 3 and uni-app (H5).",
   "keywords": [

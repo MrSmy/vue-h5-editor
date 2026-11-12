@@ -16,9 +16,9 @@ dist/vue3/index.umd.min.js    浏览器直连，Vue 3
 引入方式：
 
 ```js
-import MobileEditor from "vue-mobile-editor";       // Vue 2（默认入口）
-import MobileEditor from "vue-mobile-editor/vue2";  // Vue 2（显式）
-import MobileEditor from "vue-mobile-editor/vue3";  // Vue 3
+import MobileEditor from "vue-h5-editor";       // Vue 2（默认入口）
+import MobileEditor from "vue-h5-editor/vue2";  // Vue 2（显式）
+import MobileEditor from "vue-h5-editor/vue3";  // Vue 3
 ```
 
 样式随 JS 注入，不需要额外引入 CSS 文件。
@@ -122,7 +122,7 @@ async function pickImage() {
 ## 6. 常见问题
 
 **Q：Vue 3 项目报 `vue.defineComponent is not a function`？**
-引入错入口了。Vue 3 必须用 `vue-mobile-editor/vue3`。
+引入错入口了。Vue 3 必须用 `vue-h5-editor/vue3`。
 
 **Q：编辑器区域一片空白 / 高度只有几像素？**
 根节点是 `height: 100%`，父容器必须有确定高度。参考：

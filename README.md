@@ -1,4 +1,4 @@
-# vue-mobile-editor
+# vue-h5-editor
 
 面向移动端 H5 的富文本编辑器，基于 [Tiptap 2](https://tiptap.dev/)。
 同一份源码产出 Vue 2 与 Vue 3 两套产物，uni-app（H5 端）可直接使用。
@@ -21,8 +21,8 @@
 
 | 运行时 | 入口 | 说明 |
 | --- | --- | --- |
-| Vue 2.6+ | `vue-mobile-editor`（默认）或 `/vue2` | `v-model` 走 `value` / `input` |
-| Vue 3.2+ | `vue-mobile-editor/vue3` | `v-model` 走 `modelValue` / `update:modelValue` |
+| Vue 2.6+ | `vue-h5-editor`（默认）或 `/vue2` | `v-model` 走 `value` / `input` |
+| Vue 3.2+ | `vue-h5-editor/vue3` | `v-model` 走 `modelValue` / `update:modelValue` |
 | uni-app（H5） | 同上，按 uni-app 的 Vue 版本选择 | 依赖 DOM，**App / 小程序端不支持** |
 | 原生 H5 | `dist/vue2/index.umd.min.js` | 需要页面里先有 Vue 全局变量 |
 
@@ -31,7 +31,7 @@
 ## 安装
 
 ```bash
-npm i vue-mobile-editor
+npm i vue-h5-editor
 ```
 
 `vue` 作为 peer 依赖由宿主项目提供（`^2.6.14 || ^3.2.0`）。Tiptap 相关依赖已随包安装。
@@ -49,7 +49,7 @@ npm i vue-mobile-editor
 
 <script setup>
 import { ref } from "vue";
-import MobileEditor from "vue-mobile-editor/vue3";
+import MobileEditor from "vue-h5-editor/vue3";
 
 const html = ref("<p>你好</p>");
 
@@ -77,7 +77,7 @@ async function uploadImage(file) {
 </template>
 
 <script>
-import MobileEditor from "vue-mobile-editor";
+import MobileEditor from "vue-h5-editor";
 
 export default {
   components: { MobileEditor },
@@ -100,7 +100,7 @@ export default {
 
 ```js
 import Vue from "vue";
-import MobileEditor from "vue-mobile-editor";
+import MobileEditor from "vue-h5-editor";
 
 Vue.use(MobileEditor); // 注册为 <mobile-editor>
 ```
@@ -111,7 +111,7 @@ Vue.use(MobileEditor); // 注册为 <mobile-editor>
 
 ```vue
 <script>
-import MobileEditor from "vue-mobile-editor"; // uni-app 是 Vue 2 时
+import MobileEditor from "vue-h5-editor"; // uni-app 是 Vue 2 时
 
 export default {
   components: { MobileEditor },
@@ -126,7 +126,7 @@ export default {
 ```html
 <!-- Vue 2 -->
 <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-<script src="https://unpkg.com/vue-mobile-editor/dist/vue2/index.umd.min.js"></script>
+<script src="https://unpkg.com/vue-h5-editor/dist/vue2/index.umd.min.js"></script>
 <script>
   Vue.use(window.VueMobileEditor.default);
   new Vue({
@@ -140,7 +140,7 @@ export default {
 ```html
 <!-- Vue 3 -->
 <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<script src="https://unpkg.com/vue-mobile-editor/dist/vue3/index.umd.min.js"></script>
+<script src="https://unpkg.com/vue-h5-editor/dist/vue3/index.umd.min.js"></script>
 <script>
   Vue.createApp({
     components: { MobileEditor: window.VueMobileEditor.default },

@@ -22,7 +22,7 @@ App / 小程序端请降级为 `<textarea>`：
 ## 2. 安装与注册
 
 ```bash
-npm i vue-mobile-editor
+npm i vue-h5-editor
 ```
 
 不要用 easycom 自动扫描：easycom 只扫 `components/` 目录，npm 包需要手动注册。
@@ -37,7 +37,7 @@ uni-app 的 Vue 2 项目：
 </template>
 
 <script>
-import MobileEditor from "vue-mobile-editor"; // Vue 3 的 uni-app 改成 vue-mobile-editor/vue3
+import MobileEditor from "vue-h5-editor"; // Vue 3 的 uni-app 改成 vue-h5-editor/vue3
 
 export default {
   components: { MobileEditor },
@@ -100,7 +100,7 @@ uni-app 的 Vue 3 项目在 `main.js` 里全局注册：
 ```js
 import App from "./App.vue";
 import { createSSRApp } from "vue";
-import MobileEditor from "vue-mobile-editor/vue3";
+import MobileEditor from "vue-h5-editor/vue3";
 
 export function createApp() {
   const app = createSSRApp(App);
@@ -147,7 +147,7 @@ export function createApp() {
 - **`body` 的 `user-select`**：部分 uni-app 页面样式会给 `body` 设置 `user-select: none`，导致 iOS 上 contenteditable 收不到输入。组件内部已对 `.tiptap` 恢复 `user-select: text`，若仍无输入，检查全局样式优先级
 - **H5 路由与层级**：组件是普通 Vue 组件，不涉及页面栈；但 `fixed` 面板在 `uni-popup` 等原生弹层下可能被遮挡，需要时把宿主弹层 `z-index` 提到 10001 以上
 - **SSR / 预渲染**：组件在模块加载时会访问 `document`，不要在 Node 端导入
-- **构建**：直接用包内 `dist` 产物，不需要把 `vue-mobile-editor` 加入 `transpileDependencies`
+- **构建**：直接用包内 `dist` 产物，不需要把 `vue-h5-editor` 加入 `transpileDependencies`
 - **不要同时装载两套**：Vue 2 项目只能用默认入口或 `/vue2`
 
 ## 6. 和 uni 内置 `editor` 组件的取舍
@@ -157,4 +157,4 @@ uni-app 自带的 `<editor>` 组件在 App / 小程序端可用，但：
 - 输出格式是它自己的 delta JSON，不是标准 HTML
 - 样式和交互定制空间小，跨端表现差异大
 
-如果需求只在 H5 端出现富文本（例如 PC/H5 管理端发公告，App 端只读展示），用 `vue-mobile-editor` 更省事；需要三端都能编辑时，两端方案要分开维护。
+如果需求只在 H5 端出现富文本（例如 PC/H5 管理端发公告，App 端只读展示），用 `vue-h5-editor` 更省事；需要三端都能编辑时，两端方案要分开维护。
