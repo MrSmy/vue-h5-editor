@@ -1,5 +1,5 @@
 <template>
-  <div class="h5-editor">
+  <div class="mobile-editor">
     <div class="tiptap-scroll" @click="handleContentTap">
       <editor-content :editor="editor" class="tiptap-content" />
     </div>
@@ -268,7 +268,7 @@
       </div>
     </div>
 
-    <div v-if="toastText" class="h5-editor-toast">{{ toastText }}</div>
+    <div v-if="toastText" class="mobile-editor-toast">{{ toastText }}</div>
   </div>
 </template>
 
@@ -410,7 +410,7 @@ const DEFAULT_FORMAT_STATE = {
 };
 
 export default {
-  name: "H5Editor",
+  name: "MobileEditor",
   components: {
     EditorContent,
   },
@@ -1187,7 +1187,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.h5-editor {
+.mobile-editor {
   position: relative;
   height: 100%;
   display: flex;
@@ -1210,7 +1210,7 @@ export default {
   flex-direction: column;
 }
 
-.h5-editor ::v-deep .tiptap {
+.mobile-editor ::v-deep .tiptap {
   flex: 1;
   min-height: 100%;
   padding: 8px 12px 24px;
@@ -1226,82 +1226,82 @@ export default {
   user-select: text;
 }
 
-.h5-editor ::v-deep .tiptap p {
+.mobile-editor ::v-deep .tiptap p {
   margin: 0 0 8px;
 }
 
-.h5-editor ::v-deep .tiptap h1 {
+.mobile-editor ::v-deep .tiptap h1 {
   margin: 12px 0 8px;
   font-size: 26px;
   font-weight: 600;
   line-height: 1.35;
 }
 
-.h5-editor ::v-deep .tiptap h2 {
+.mobile-editor ::v-deep .tiptap h2 {
   margin: 12px 0 8px;
   font-size: 22px;
   font-weight: 600;
   line-height: 1.35;
 }
 
-.h5-editor ::v-deep .tiptap h3 {
+.mobile-editor ::v-deep .tiptap h3 {
   margin: 10px 0 6px;
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
 }
 
-.h5-editor ::v-deep .tiptap h4 {
+.mobile-editor ::v-deep .tiptap h4 {
   margin: 10px 0 6px;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
 }
 
-.h5-editor ::v-deep .tiptap h5 {
+.mobile-editor ::v-deep .tiptap h5 {
   margin: 8px 0 6px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
 }
 
-.h5-editor ::v-deep .tiptap ul,
-.h5-editor ::v-deep .tiptap ol {
+.mobile-editor ::v-deep .tiptap ul,
+.mobile-editor ::v-deep .tiptap ol {
   margin: 0 0 8px;
   padding-left: 22px;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] {
   padding-left: 0;
   list-style: none;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] li {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li {
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] li > label {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > label {
   flex-shrink: 0;
   margin-top: 4px;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] li > div {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > div {
   flex: 1;
   min-width: 0;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] li > div > p {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > div > p {
   margin: 0;
 }
 
-.h5-editor ::v-deep .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] input[type="checkbox"] {
   width: 16px;
   height: 16px;
 }
 
-.h5-editor ::v-deep .tiptap img {
+.mobile-editor ::v-deep .tiptap img {
   max-width: 100%;
   /* 限制图片高度，避免一张大图把编辑区占满、看不到输入位置 */
   max-height: 240px;
@@ -1310,7 +1310,7 @@ export default {
   object-fit: contain;
 }
 
-.h5-editor ::v-deep .tiptap hr {
+.mobile-editor ::v-deep .tiptap hr {
   /* 移动端 1px border 容易渲染不可见，改用 2px 背景条 */
   height: 2px;
   margin: 14px 0;
@@ -1319,19 +1319,19 @@ export default {
   background: #c0c4cc;
 }
 
-.h5-editor ::v-deep .tiptap .tableWrapper {
+.mobile-editor ::v-deep .tiptap .tableWrapper {
   width: 100%;
   overflow-x: auto;
 }
 
-.h5-editor ::v-deep .tiptap table {
+.mobile-editor ::v-deep .tiptap table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
 
-.h5-editor ::v-deep .tiptap td,
-.h5-editor ::v-deep .tiptap th {
+.mobile-editor ::v-deep .tiptap td,
+.mobile-editor ::v-deep .tiptap th {
   min-width: 80px;
   padding: 6px 8px;
   border: 1px solid #e5e6eb;
@@ -1339,7 +1339,7 @@ export default {
   box-sizing: border-box;
 }
 
-.h5-editor ::v-deep .tiptap p.is-editor-empty:first-child::before {
+.mobile-editor ::v-deep .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
   height: 0;
@@ -1915,7 +1915,7 @@ export default {
   color: #8a8a8f;
 }
 
-.h5-editor-toast {
+.mobile-editor-toast {
   position: fixed;
   left: 50%;
   bottom: 96px;

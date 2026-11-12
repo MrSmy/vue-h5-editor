@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>h5-rich-editor demo</title>
+    <title>mobile-editor demo</title>
     <style>
       * { box-sizing: border-box; }
       html, body { height: 100%; }
@@ -65,15 +65,15 @@
         </button>
       </div>
       <div class="demo-body">
-        <h5-editor v-model="html" placeholder="请输入公告内容…" />
+        <mobile-editor v-model="html" placeholder="请输入公告内容…" />
       </div>
       <pre :class="['output', showHtml ? 'is-visible' : '']">{{ html }}</pre>
     </div>
 
     <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../dist/h5-rich-editor.umd.js"></script>
+    <script src="../dist/mobile-editor.umd.js"></script>
     <script>
-      Vue.use(window.H5RichEditor.default);
+      Vue.use(window.MobileEditor.default);
       new Vue({
         el: "#app",
         data: {

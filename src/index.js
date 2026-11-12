@@ -1,8 +1,8 @@
-import H5Editor from "./H5Editor.vue";
+import MobileEditor from "./MobileEditor.vue";
 
-H5Editor.install = function install(Vue) {
-  Vue.component(H5Editor.name, H5Editor);
+MobileEditor.install = function install(Vue) {
+  Vue.component(MobileEditor.name, MobileEditor);
 };
 
-export default H5Editor;
-export { H5Editor };
+export default MobileEditor;
+export { MobileEditor };

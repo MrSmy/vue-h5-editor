@@ -1,5 +1,5 @@
 {
-  "name": "h5-rich-editor",
+  "name": "mobile-editor",
   "version": "0.1.0",
   "description": "Mobile-first rich text editor for H5, built on Tiptap 2 and Vue 2.",
   "keywords": [
@@ -13,13 +13,13 @@
   ],
   "license": "MIT",
   "author": "fengyang <mrsimayang@163.com>",
-  "main": "dist/h5-rich-editor.common.js",
-  "module": "dist/h5-rich-editor.esm.js",
-  "unpkg": "dist/h5-rich-editor.umd.min.js",
-  "jsdelivr": "dist/h5-rich-editor.umd.min.js",
+  "main": "dist/mobile-editor.common.js",
+  "module": "dist/mobile-editor.esm.js",
+  "unpkg": "dist/mobile-editor.umd.min.js",
+  "jsdelivr": "dist/mobile-editor.umd.min.js",
   "files": [
     "dist",
-    "src/H5Editor.vue",
+    "src/MobileEditor.vue",
     "src/index.js",
     "README.md",
     "LICENSE"

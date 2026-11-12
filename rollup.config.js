@@ -6,8 +6,8 @@ const vue = require("rollup-plugin-vue");
 const { terser } = require("rollup-plugin-terser");
 const pkg = require("./package.json");
 
-const name = "H5RichEditor";
-const umdFile = path.join("dist", "h5-rich-editor.umd.js");
+const name = "MobileEditor";
+const umdFile = path.join("dist", "mobile-editor.umd.js");
 
 const plugins = [
   nodeResolve({ extensions: [".js", ".vue"] }),

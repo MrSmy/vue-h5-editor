@@ -1,4 +1,4 @@
-# h5-rich-editor
+# mobile-editor
 
 面向移动端 H5 的富文本编辑器，基于 [Tiptap 2](https://tiptap.dev/) + Vue 2。
 没有工具栏按钮行，把格式操作收进键盘上方的浮动面板，给移动端留出更多正文空间。
@@ -18,7 +18,7 @@
 ## 安装
 
 ```bash
-npm i h5-rich-editor
+npm i mobile-editor
 ```
 
 Tiptap 相关依赖已作为 dependencies 一并安装；`vue` 需要宿主项目自己提供（`^2.6.14`）。
@@ -28,15 +28,15 @@ Tiptap 相关依赖已作为 dependencies 一并安装；`vue` 需要宿主项�
 ```vue
 <template>
   <div class="editor-wrap">
-    <h5-editor v-model="html" placeholder="说点什么…" :upload-image="uploadImage" />
+    <mobile-editor v-model="html" placeholder="说点什么…" :upload-image="uploadImage" />
   </div>
 </template>
 
 <script>
-import H5Editor from "h5-rich-editor";
+import MobileEditor from "mobile-editor";
 
 export default {
-  components: { H5Editor },
+  components: { MobileEditor },
   data() {
     return { html: "<p>你好</p>" };
   },
@@ -65,20 +65,20 @@ export default {
 
 ```js
 import Vue from "vue";
-import H5Editor from "h5-rich-editor";
+import MobileEditor from "mobile-editor";
 
-Vue.use(H5Editor); // 注册为 <h5-editor>
+Vue.use(MobileEditor); // 注册为 <mobile-editor>
 ```
 
 CDN 直接引入（需要先加载 Vue 2）：
 
 ```html
 <script src="https://unpkg.com/vue@2.6.14/dist/vue.js"></script>
-<script src="https://unpkg.com/h5-rich-editor/dist/h5-rich-editor.umd.min.js"></script>
+<script src="https://unpkg.com/mobile-editor/dist/mobile-editor.umd.min.js"></script>
 <script>
   new Vue({
     el: "#app",
-    template: '<h5-rich-editor v-model="html" style="height:100vh" />',
+    template: '<mobile-editor v-model="html" style="height:100vh" />',
     data: { html: "" },
   });
 </script>
