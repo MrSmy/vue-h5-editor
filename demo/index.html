@@ -3,85 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <title>mobile-editor demo</title>
+    <title>vue-mobile-editor demo</title>
     <style>
-      * { box-sizing: border-box; }
-      html, body { height: 100%; }
       body {
         margin: 0;
-        background: #fff;
-        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      }
-      #app {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-      }
-      .demo-head {
-        flex: none;
+        min-height: 100vh;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        border-bottom: 1px solid #e5e6eb;
-        color: #1f2329;
-        font-size: 15px;
-        font-weight: 600;
+        justify-content: center;
+        background: #eef1f6;
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       }
-      .demo-head button {
-        padding: 4px 10px;
-        border: 1px solid #d0d5dd;
-        border-radius: 6px;
+      .card {
+        width: 340px;
+        padding: 28px 24px;
+        border-radius: 14px;
         background: #fff;
-        color: #1f2329;
-        font-size: 12px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
       }
-      .demo-body { flex: 1; min-height: 0; }
-      .output {
-        position: fixed;
-        inset: 0;
-        z-index: 10002;
-        display: none;
-        margin: 0;
-        padding: 24px 16px 96px;
-        overflow: auto;
-        background: #1f2329;
-        color: #d7dae0;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 12px;
-        line-height: 18px;
-        white-space: pre-wrap;
-        word-break: break-all;
+      h1 { margin: 0 0 6px; font-size: 20px; color: #1f2329; }
+      p { margin: 0 0 20px; color: #5c6470; font-size: 13px; line-height: 20px; }
+      a {
+        display: block;
+        margin-bottom: 10px;
+        padding: 12px 14px;
+        border: 1px solid #e5e6eb;
+        border-radius: 10px;
+        color: #1e6fff;
+        font-size: 14px;
+        text-decoration: none;
       }
-      .output.is-visible { display: block; }
+      a:hover { background: #f3f6fb; }
+      code { color: #8a9099; font-size: 12px; }
     </style>
   </head>
   <body>
-    <div id="app">
-      <div class="demo-head">
-        <span>发布公告</span>
-        <button type="button" @click="showHtml = !showHtml">
-          {{ showHtml ? "收起 HTML" : "查看 HTML" }}
-        </button>
-      </div>
-      <div class="demo-body">
-        <mobile-editor v-model="html" placeholder="请输入公告内容…" />
-      </div>
-      <pre :class="['output', showHtml ? 'is-visible' : '']">{{ html }}</pre>
+    <div class="card">
+      <h1>vue-mobile-editor</h1>
+      <p>移动端富文本编辑器 demo，选择要预览的运行时。</p>
+      <a href="./vue2.html">Vue 2 示例 <code>dist/vue2</code></a>
+      <a href="./vue3.html">Vue 3 示例 <code>dist/vue3</code></a>
     </div>
-
-    <script src="../node_modules/vue/dist/vue.js"></script>
-    <script src="../dist/mobile-editor.umd.js"></script>
-    <script>
-      Vue.use(window.MobileEditor.default);
-      new Vue({
-        el: "#app",
-        data: {
-          showHtml: false,
-          html:
-            "<h2>本周安排</h2><p>请各班老师<b>周五前</b>提交下周食谱。</p><ul><li><p>核对班级人数</p></li><li><p>更新家长通讯录</p></li></ul>",
-        },
-      });
-    </script>
   </body>
 </html>

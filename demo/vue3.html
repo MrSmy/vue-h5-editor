@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>vue-mobile-editor · Vue 3 demo</title>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="demo-head">
+        <span>发布公告 · Vue 3</span>
+        <button type="button" @click="showHtml = !showHtml">
+          {{ showHtml ? "收起 HTML" : "查看 HTML" }}
+        </button>
+      </div>
+      <div class="demo-body">
+        <mobile-editor v-model="html" placeholder="请输入公告内容…" />
+      </div>
+      <pre :class="['output', showHtml ? 'is-visible' : '']">{{ html }}</pre>
+    </div>
+
+    <script src="../node_modules/vue3/dist/vue.global.js"></script>
+    <script src="../dist/vue3/index.umd.js"></script>
+    <script>
+      const { createApp } = Vue;
+      createApp({
+        components: { MobileEditor: window.VueMobileEditor.default },
+        data() {
+          return {
+            showHtml: false,
+            html:
+              "<h2>本周安排</h2><p>请各班老师<b>周五前</b>提交下周食谱。</p><ul><li><p>核对班级人数</p></li><li><p>更新家长通讯录</p></li></ul>",
+          };
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>

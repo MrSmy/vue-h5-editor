@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-editor">
     <div class="tiptap-scroll" @click="handleContentTap">
-      <editor-content :editor="editor" class="tiptap-content" />
+      <editor-content v-if="editorReady" :editor="editor" class="tiptap-content" />
     </div>
 
     <div v-if="dockVisible" class="keyboard-dock" :style="dockStyle">
@@ -414,25 +414,38 @@ export default {
   components: {
     EditorContent,
   },
+  // Vue 3 需要声明事件，Vue 2 会忽略该选项
+  emits: ["input", "update:modelValue"],
   props: {
+    // Vue 2 的 v-model
     value: {
       type: String,
-      default: "",
+      default: undefined,
+    },
+    // Vue 3 的 v-model
+    modelValue: {
+      type: String,
+      default: undefined,
     },
     placeholder: {
       type: String,
       default: "",
     },
-    // (file) => Promise<url>；不传则把图片转成 base64 内联进内容
+    // (file: File) => Promise<url>；不传则把图片转成 base64 内联进内容
     uploadImage: {
+      type: Function,
+      default: null,
+    },
+    // 自定义取图，可返回 File/Blob 或图片地址；uni-app 里可接 uni.chooseImage
+    pickImage: {
       type: Function,
       default: null,
     },
   },
   data() {
     return {
-      innerValue: this.value,
-      editor: null,
+      innerValue: this.currentValue,
+      editorReady: false,
       editorFocused: false,
       activePanel: "",
       toastText: "",
@@ -475,6 +488,10 @@ export default {
     };
   },
   computed: {
+    currentValue() {
+      // Vue 3 传 modelValue，Vue 2 传 value
+      return this.modelValue !== undefined ? this.modelValue : this.value;
+    },
     dockVisible() {
       return this.editorFocused || !!this.activePanel;
     },
@@ -491,7 +508,7 @@ export default {
     },
   },
   watch: {
-    value(val) {
+    currentValue(val) {
       if (val !== this.innerValue) {
         this.innerValue = val;
         if (this.editor && !this.editor.isFocused) {
@@ -502,6 +519,8 @@ export default {
     },
   },
   created() {
+    // editor 不放进 data：Vue 3 会把 data 里的对象包成响应式代理，破坏 Tiptap 内部状态
+    this.editor = null;
     this.pendingMarks = null;
     this.restoreMarksTimer = null;
     this.compositionStartPos = null;
@@ -511,26 +530,33 @@ export default {
     this.bindKeyboardListener();
   },
   beforeDestroy() {
-    if (this.restoreMarksTimer) {
-      clearTimeout(this.restoreMarksTimer);
-      this.restoreMarksTimer = null;
-    }
-    if (this.toastTimer) {
-      clearTimeout(this.toastTimer);
-      this.toastTimer = null;
-    }
-    this.removeFileInput();
-    this.unbindKeyboardListener();
-    this.unbindEditorFocusEvents();
-    if (this.editor) {
-      this.editor.destroy();
-      this.editor = null;
-    }
+    this.destroyEditor();
+  },
+  beforeUnmount() {
+    this.destroyEditor();
   },
   methods: {
+    destroyEditor() {
+      if (this.restoreMarksTimer) {
+        clearTimeout(this.restoreMarksTimer);
+        this.restoreMarksTimer = null;
+      }
+      if (this.toastTimer) {
+        clearTimeout(this.toastTimer);
+        this.toastTimer = null;
+      }
+      this.removeFileInput();
+      this.unbindKeyboardListener();
+      this.unbindEditorFocusEvents();
+      if (this.editor) {
+        this.editor.destroy();
+        this.editor = null;
+      }
+      this.editorReady = false;
+    },
     createEditor() {
       this.editor = new Editor({
-        content: this.value || "",
+        content: this.currentValue || "",
         extensions: [
           StarterKit.configure({
             heading: { levels: [1, 2, 3, 4, 5] },
@@ -559,7 +585,9 @@ export default {
         onUpdate: ({ editor }) => {
           const html = editor.getHTML();
           this.innerValue = html;
+          // 同时抛出两套 v-model 事件，Vue 2 / Vue 3 都能直接用
           this.$emit("input", html);
+          this.$emit("update:modelValue", html);
           this.syncFormatState();
         },
         onSelectionUpdate: () => {
@@ -570,6 +598,7 @@ export default {
           }
         },
         onCreate: () => {
+          this.editorReady = true;
           this.syncFormatState();
         },
       });
@@ -977,7 +1006,7 @@ export default {
         return;
       }
       if (type === "image") {
-        this.chooseImage();
+        this.openImagePicker();
       }
     },
     rememberSelection() {
@@ -1111,11 +1140,30 @@ export default {
         container.scrollTop -= visibleTop - targetRect.top;
       }
     },
-    chooseImage() {
+    async openImagePicker() {
       this.activePanel = "";
       this.pendingImageSelection = this.lastSelection
         ? { ...this.lastSelection }
         : null;
+      if (!this.pickImage) {
+        this.openFileInput();
+        return;
+      }
+      try {
+        const picked = await this.pickImage();
+        if (!picked) {
+          return;
+        }
+        if (typeof picked === "string") {
+          this.insertImage(picked);
+          return;
+        }
+        await this.handleImageSelected(picked);
+      } catch (error) {
+        this.showToast((error && error.message) || "选择图片失败");
+      }
+    },
+    openFileInput() {
       // 必须挂在 body 上：iOS Safari 里游离的 file input 点不动
       const input = document.createElement("input");
       input.type = "file";
@@ -1186,7 +1234,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .mobile-editor {
   position: relative;
   height: 100%;
@@ -1194,23 +1242,20 @@ export default {
   flex-direction: column;
   background: #fff;
 }
-
-.tiptap-scroll {
+.mobile-editor .tiptap-scroll{
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
-
-.tiptap-content {
+.mobile-editor .tiptap-content{
   flex: 1;
   min-height: 100%;
   display: flex;
   flex-direction: column;
 }
-
-.mobile-editor ::v-deep .tiptap {
+.mobile-editor .tiptap{
   flex: 1;
   min-height: 100%;
   padding: 8px 12px 24px;
@@ -1225,83 +1270,69 @@ export default {
   -webkit-user-select: text;
   user-select: text;
 }
-
-.mobile-editor ::v-deep .tiptap p {
+.mobile-editor .tiptap p{
   margin: 0 0 8px;
 }
-
-.mobile-editor ::v-deep .tiptap h1 {
+.mobile-editor .tiptap h1{
   margin: 12px 0 8px;
   font-size: 26px;
   font-weight: 600;
   line-height: 1.35;
 }
-
-.mobile-editor ::v-deep .tiptap h2 {
+.mobile-editor .tiptap h2{
   margin: 12px 0 8px;
   font-size: 22px;
   font-weight: 600;
   line-height: 1.35;
 }
-
-.mobile-editor ::v-deep .tiptap h3 {
+.mobile-editor .tiptap h3{
   margin: 10px 0 6px;
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
 }
-
-.mobile-editor ::v-deep .tiptap h4 {
+.mobile-editor .tiptap h4{
   margin: 10px 0 6px;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
 }
-
-.mobile-editor ::v-deep .tiptap h5 {
+.mobile-editor .tiptap h5{
   margin: 8px 0 6px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
 }
-
-.mobile-editor ::v-deep .tiptap ul,
-.mobile-editor ::v-deep .tiptap ol {
+.mobile-editor .tiptap ul,
+.mobile-editor .tiptap ol{
   margin: 0 0 8px;
   padding-left: 22px;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] {
+.mobile-editor .tiptap ul[data-type="taskList"]{
   padding-left: 0;
   list-style: none;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li {
+.mobile-editor .tiptap ul[data-type="taskList"] li{
   display: flex;
   align-items: flex-start;
   gap: 8px;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > label {
+.mobile-editor .tiptap ul[data-type="taskList"] li > label{
   flex-shrink: 0;
   margin-top: 4px;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > div {
+.mobile-editor .tiptap ul[data-type="taskList"] li > div{
   flex: 1;
   min-width: 0;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] li > div > p {
+.mobile-editor .tiptap ul[data-type="taskList"] li > div > p{
   margin: 0;
 }
-
-.mobile-editor ::v-deep .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+.mobile-editor .tiptap ul[data-type="taskList"] input[type="checkbox"]{
   width: 16px;
   height: 16px;
 }
-
-.mobile-editor ::v-deep .tiptap img {
+.mobile-editor .tiptap img{
   max-width: 100%;
   /* 限制图片高度，避免一张大图把编辑区占满、看不到输入位置 */
   max-height: 240px;
@@ -1309,8 +1340,7 @@ export default {
   height: auto;
   object-fit: contain;
 }
-
-.mobile-editor ::v-deep .tiptap hr {
+.mobile-editor .tiptap hr{
   /* 移动端 1px border 容易渲染不可见，改用 2px 背景条 */
   height: 2px;
   margin: 14px 0;
@@ -1318,42 +1348,36 @@ export default {
   border-radius: 1px;
   background: #c0c4cc;
 }
-
-.mobile-editor ::v-deep .tiptap .tableWrapper {
+.mobile-editor .tiptap .tableWrapper{
   width: 100%;
   overflow-x: auto;
 }
-
-.mobile-editor ::v-deep .tiptap table {
+.mobile-editor .tiptap table{
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
 }
-
-.mobile-editor ::v-deep .tiptap td,
-.mobile-editor ::v-deep .tiptap th {
+.mobile-editor .tiptap td,
+.mobile-editor .tiptap th{
   min-width: 80px;
   padding: 6px 8px;
   border: 1px solid #e5e6eb;
   vertical-align: top;
   box-sizing: border-box;
 }
-
-.mobile-editor ::v-deep .tiptap p.is-editor-empty:first-child::before {
+.mobile-editor .tiptap p.is-editor-empty:first-child::before{
   content: attr(data-placeholder);
   float: left;
   height: 0;
   color: #c0c4cc;
   pointer-events: none;
 }
-
-.keyboard-dock {
+.mobile-editor .keyboard-dock{
   background: #fff;
   border-top: 1px solid #e5e6eb;
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
 }
-
-.dock-panel {
+.mobile-editor .dock-panel{
   /* 不用 vh：键盘弹起后部分容器会把版心高度算进 vh，导致面板被截断/出滚动 */
   max-height: 360px;
   padding: 10px 12px;
@@ -1361,19 +1385,16 @@ export default {
   overflow-y: auto;
   background: #f3f6fb;
 }
-
-.panel-section-title {
+.mobile-editor .panel-section-title{
   color: #1f2329;
   font-size: 12px;
   font-weight: 600;
 }
-
-.panel-section-hint {
+.mobile-editor .panel-section-hint{
   color: #8a9099;
   font-size: 10px;
 }
-
-.insert-item {
+.mobile-editor .insert-item{
   position: relative;
   overflow: hidden;
   width: 31%;
@@ -1388,29 +1409,24 @@ export default {
   background: #fff;
   vertical-align: top;
 }
-
-.insert-item:last-child {
+.mobile-editor .insert-item:last-child{
   margin-right: 0;
 }
-
-.insert-label {
+.mobile-editor .insert-label{
   color: #1f2329;
   font-size: 11px;
 }
-
-.insert-icon {
+.mobile-editor .insert-icon{
   width: 24px;
   height: 24px;
   box-sizing: border-box;
 }
-
-.insert-icon-image {
+.mobile-editor .insert-icon-image{
   border: 1.5px solid #1f2329;
   border-radius: 4px;
   position: relative;
 }
-
-.insert-icon-image::before {
+.mobile-editor .insert-icon-image::before{
   content: "";
   position: absolute;
   left: 4px;
@@ -1420,8 +1436,7 @@ export default {
   border-radius: 50%;
   background: #1f2329;
 }
-
-.insert-icon-image::after {
+.mobile-editor .insert-icon-image::after{
   content: "";
   position: absolute;
   left: 3px;
@@ -1431,8 +1446,7 @@ export default {
   background: #1f2329;
   clip-path: polygon(0 100%, 40% 30%, 65% 60%, 100% 0, 100% 100%);
 }
-
-.insert-icon-table {
+.mobile-editor .insert-icon-table{
   border: 1.5px solid #1f2329;
   border-radius: 3px;
   background-image: linear-gradient(#1f2329, #1f2329),
@@ -1441,31 +1455,26 @@ export default {
   background-position: center, center;
   background-repeat: no-repeat;
 }
-
-.insert-icon-divider {
+.mobile-editor .insert-icon-divider{
   display: flex;
   align-items: center;
 }
-
-.insert-icon-divider::before {
+.mobile-editor .insert-icon-divider::before{
   content: "";
   width: 24px;
   height: 1.5px;
   background: #1f2329;
 }
-
-.heading-panel {
+.mobile-editor .heading-panel{
   padding: 8px 6px;
 }
-
-.heading-scroll {
+.mobile-editor .heading-scroll{
   display: flex;
   align-items: stretch;
   gap: 4px;
   overflow-x: auto;
 }
-
-.heading-card {
+.mobile-editor .heading-card{
   flex: 1 1 0;
   min-width: 0;
   height: 52px;
@@ -1477,40 +1486,33 @@ export default {
   border-radius: 8px;
   background: transparent;
 }
-
-.heading-card-name {
+.mobile-editor .heading-card-name{
   color: #3d434b;
   font-size: 14px;
   font-weight: 500;
 }
-
-.heading-card-size {
+.mobile-editor .heading-card-size{
   color: #8a9099;
   font-size: 10px;
 }
-
-.heading-card.is-active {
+.mobile-editor .heading-card.is-active{
   background: #fff;
   box-shadow: 0 2px 8px rgba(30, 111, 255, 0.12);
 }
-
-.heading-card.is-active .heading-card-name {
+.mobile-editor .heading-card.is-active .heading-card-name{
   color: #1e6fff;
   font-weight: 700;
 }
-
-.heading-card.is-active .heading-card-size {
+.mobile-editor .heading-card.is-active .heading-card-size{
   color: #1e6fff;
 }
-
-.font-size-head {
+.mobile-editor .font-size-head{
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
 }
-
-.text-style-row {
+.mobile-editor .text-style-row{
   height: 38px;
   margin-bottom: 10px;
   display: flex;
@@ -1518,8 +1520,7 @@ export default {
   border-radius: 8px;
   background: #fff;
 }
-
-.text-style-btn {
+.mobile-editor .text-style-btn{
   flex: 1;
   height: 34px;
   display: flex;
@@ -1529,48 +1530,40 @@ export default {
   border-radius: 6px;
   color: #1f2329;
 }
-
-.text-style-btn.is-active {
+.mobile-editor .text-style-btn.is-active{
   background: #e8f0ff;
   color: #1e6fff;
 }
-
-.ts-bold {
+.mobile-editor .ts-bold{
   font-size: 15px;
   font-weight: 700;
 }
-
-.ts-italic {
+.mobile-editor .ts-italic{
   font-size: 15px;
   font-style: italic;
 }
-
-.ts-strike {
+.mobile-editor .ts-strike{
   font-size: 15px;
   text-decoration: line-through;
 }
-
-.ts-underline {
+.mobile-editor .ts-underline{
   font-size: 15px;
   text-decoration: underline;
 }
-
-.font-size-row {
+.mobile-editor .font-size-row{
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
 }
-
-.font-stepper {
+.mobile-editor .font-stepper{
   display: flex;
   align-items: center;
   height: 32px;
   border-radius: 8px;
   background: #fff;
 }
-
-.stepper-btn {
+.mobile-editor .stepper-btn{
   width: 30px;
   height: 30px;
   display: flex;
@@ -1579,15 +1572,13 @@ export default {
   color: #1f2329;
   font-size: 16px;
 }
-
-.stepper-value {
+.mobile-editor .stepper-value{
   min-width: 36px;
   text-align: center;
   color: #1f2329;
   font-size: 12px;
 }
-
-.size-option {
+.mobile-editor .size-option{
   width: 30px;
   height: 32px;
   display: flex;
@@ -1598,59 +1589,50 @@ export default {
   color: #5c6470;
   font-size: 12px;
 }
-
-.size-option.is-active {
+.mobile-editor .size-option.is-active{
   background: #1e6fff;
   color: #fff;
 }
-
-.color-section-head {
+.mobile-editor .color-section-head{
   margin-top: 10px;
   margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-
-.color-grid {
+.mobile-editor .color-grid{
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px 6px;
 }
-
-.color-item {
+.mobile-editor .color-item{
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
 }
-
-.color-dot,
-.color-clear {
+.mobile-editor .color-dot,
+.mobile-editor .color-clear{
   width: 28px;
   height: 28px;
   box-sizing: border-box;
   border-radius: 50%;
 }
-
-.color-dot {
+.mobile-editor .color-dot{
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid transparent;
 }
-
-.color-dot.is-active {
+.mobile-editor .color-dot.is-active{
   border-color: #1e6fff;
   box-shadow: 0 0 0 2px #fff;
 }
-
-.color-check {
+.mobile-editor .color-check{
   color: #fff;
   font-size: 12px;
 }
-
-.color-clear {
+.mobile-editor .color-clear{
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1658,35 +1640,28 @@ export default {
   color: #5c6470;
   font-size: 14px;
 }
-
-.color-name {
+.mobile-editor .color-name{
   color: #5c6470;
   font-size: 10px;
 }
-
-.paragraph-panel .panel-section-title {
+.mobile-editor .paragraph-panel .panel-section-title{
   display: block;
   margin-bottom: 8px;
 }
-
-.paragraph-spacing-title {
+.mobile-editor .paragraph-spacing-title{
   margin-top: 10px;
 }
-
-.list-panel .insert-item {
+.mobile-editor .list-panel .insert-item{
   height: 64px;
 }
-
-.insert-item.is-active {
+.mobile-editor .insert-item.is-active{
   background: #e8f0ff;
 }
-
-.insert-item.is-active .insert-label {
+.mobile-editor .insert-item.is-active .insert-label{
   color: #1e6fff;
   font-weight: 600;
 }
-
-.list-icon {
+.mobile-editor .list-icon{
   width: 24px;
   height: 24px;
   display: flex;
@@ -1696,20 +1671,17 @@ export default {
   font-size: 16px;
   font-weight: 600;
 }
-
-.list-icon-ordered,
-.list-icon-bullet {
+.mobile-editor .list-icon-ordered,
+.mobile-editor .list-icon-bullet{
   font-size: 15px;
 }
-
-.paragraph-row {
+.mobile-editor .paragraph-row{
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
 }
-
-.paragraph-btn {
+.mobile-editor .paragraph-btn{
   width: 36px;
   height: 32px;
   display: flex;
@@ -1718,54 +1690,44 @@ export default {
   border-radius: 8px;
   background: #fff;
 }
-
-.paragraph-btn.is-active {
+.mobile-editor .paragraph-btn.is-active{
   background: #1e6fff;
 }
-
-.align-icon {
+.mobile-editor .align-icon{
   width: 16px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
-.align-icon span {
+.mobile-editor .align-icon span{
   display: block;
   height: 2px;
   border-radius: 1px;
   background: #3d434b;
 }
-
-.align-icon-left span:nth-child(2) {
+.mobile-editor .align-icon-left span:nth-child(2){
   width: 10px;
 }
-
-.align-icon-center span:nth-child(2) {
+.mobile-editor .align-icon-center span:nth-child(2){
   width: 10px;
   align-self: center;
 }
-
-.align-icon-right span:nth-child(2) {
+.mobile-editor .align-icon-right span:nth-child(2){
   width: 10px;
   align-self: flex-end;
 }
-
-.paragraph-btn.is-active .align-icon span {
+.mobile-editor .paragraph-btn.is-active .align-icon span{
   background: #fff;
 }
-
-.indent-icon {
+.mobile-editor .indent-icon{
   color: #3d434b;
   font-size: 15px;
   font-weight: 600;
 }
-
-.paragraph-btn.is-active .indent-icon {
+.mobile-editor .paragraph-btn.is-active .indent-icon{
   color: #fff;
 }
-
-.line-height-btn {
+.mobile-editor .line-height-btn{
   min-width: 42px;
   height: 32px;
   padding: 0 6px;
@@ -1777,20 +1739,17 @@ export default {
   color: #3d434b;
   font-size: 11px;
 }
-
-.line-height-btn.is-active {
+.mobile-editor .line-height-btn.is-active{
   background: #1e6fff;
   color: #fff;
 }
-
-.dock-toolbar {
+.mobile-editor .dock-toolbar{
   display: flex;
   align-items: stretch;
   height: 56px;
   background: #fff;
 }
-
-.dock-tool {
+.mobile-editor .dock-tool{
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1799,18 +1758,15 @@ export default {
   gap: 3px;
   color: #3d434b;
 }
-
-.dock-tool-label {
+.mobile-editor .dock-tool-label{
   font-size: 10px;
   line-height: 14px;
   color: #5c6470;
 }
-
-.dock-tool.is-active .dock-tool-label {
+.mobile-editor .dock-tool.is-active .dock-tool-label{
   color: #1e6fff;
 }
-
-.tool-add {
+.mobile-editor .tool-add{
   width: 22px;
   height: 22px;
   display: flex;
@@ -1823,33 +1779,27 @@ export default {
   font-size: 18px;
   line-height: 1;
 }
-
-.tool-text {
+.mobile-editor .tool-text{
   height: 22px;
   line-height: 22px;
   color: #3d434b;
 }
-
-.tool-text-t {
+.mobile-editor .tool-text-t{
   font-size: 17px;
   font-weight: 700;
 }
-
-.tool-text-aa {
+.mobile-editor .tool-text-aa{
   font-size: 15px;
   font-weight: 500;
 }
-
-.dock-tool.is-active .tool-text,
-.dock-tool.is-active .tool-add {
+.mobile-editor .dock-tool.is-active .tool-text,
+.mobile-editor .dock-tool.is-active .tool-add{
   color: #1e6fff;
 }
-
-.dock-tool.is-active .tool-add {
+.mobile-editor .dock-tool.is-active .tool-add{
   border-color: #1e6fff;
 }
-
-.tool-align {
+.mobile-editor .tool-align{
   width: 18px;
   height: 22px;
   display: flex;
@@ -1857,24 +1807,20 @@ export default {
   justify-content: center;
   gap: 3px;
 }
-
-.tool-align span {
+.mobile-editor .tool-align span{
   display: block;
   width: 18px;
   height: 2px;
   border-radius: 1px;
   background: #3d434b;
 }
-
-.tool-align span:nth-child(2) {
+.mobile-editor .tool-align span:nth-child(2){
   width: 12px;
 }
-
-.dock-tool.is-active .tool-align span {
+.mobile-editor .dock-tool.is-active .tool-align span{
   background: #1e6fff;
 }
-
-.tool-list {
+.mobile-editor .tool-list{
   width: 20px;
   height: 22px;
   display: flex;
@@ -1882,40 +1828,34 @@ export default {
   justify-content: center;
   gap: 3px;
 }
-
-.tool-list-row {
+.mobile-editor .tool-list-row{
   display: flex;
   align-items: center;
   gap: 3px;
 }
-
-.tool-list-dot {
+.mobile-editor .tool-list-dot{
   width: 3px;
   height: 3px;
   border-radius: 50%;
   background: #3d434b;
 }
-
-.tool-list-line {
+.mobile-editor .tool-list-line{
   width: 12px;
   height: 2px;
   border-radius: 1px;
   background: #3d434b;
 }
-
-.dock-tool.is-active .tool-list-dot,
-.dock-tool.is-active .tool-list-line {
+.mobile-editor .dock-tool.is-active .tool-list-dot,
+.mobile-editor .dock-tool.is-active .tool-list-line{
   background: #1e6fff;
 }
-
-.tool-keyboard {
+.mobile-editor .tool-keyboard{
   width: 22px;
   height: 22px;
   display: block;
   color: #8a8a8f;
 }
-
-.mobile-editor-toast {
+.mobile-editor .mobile-editor-toast {
   position: fixed;
   left: 50%;
   bottom: 96px;
@@ -1929,5 +1869,4 @@ export default {
   font-size: 13px;
   line-height: 18px;
   text-align: center;
-}
-</style>
+}</style>
