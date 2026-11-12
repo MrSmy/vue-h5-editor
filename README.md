@@ -1,5 +1,10 @@
 # vue-h5-editor
 
+[![npm version](https://img.shields.io/npm/v/vue-h5-editor.svg)](https://www.npmjs.com/package/vue-h5-editor)
+[![npm downloads](https://img.shields.io/npm/dm/vue-h5-editor.svg)](https://www.npmjs.com/package/vue-h5-editor)
+[![demo](https://img.shields.io/badge/demo-online-1e6fff.svg)](https://mrsmy.github.io/vue-h5-editor/)
+[![license](https://img.shields.io/npm/l/vue-h5-editor.svg)](./LICENSE)
+
 面向移动端 H5 的富文本编辑器，基于 [Tiptap 2](https://tiptap.dev/)。
 同一份源码产出 Vue 2 与 Vue 3 两套产物，uni-app（H5 端）可直接使用。
 
